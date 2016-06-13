@@ -23,6 +23,6 @@ var logger = morgan('combined');
 app.use(morgan('combined'));
 
 
-var server = app.listen(3000, function() {
+var server = app.listen(3002, function() {
 	console.log('server running at http://127.0.0.1:3002/');
 });
