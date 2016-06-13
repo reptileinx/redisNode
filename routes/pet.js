@@ -3,6 +3,7 @@ var r = require('request').defaults({
 });
 
 var async = require('async');
+var moment = require('moment');
 //var redis = require('redis');
 //var client = redis.createClient(6379, '127.0.0.1');
 
@@ -64,7 +65,7 @@ module.exports = function(app) {
 
     app.get('/ping', function(req, res) {
         res.json({
-            pong: Date.now()
+            pong: moment().format()
         });
     });
 };
