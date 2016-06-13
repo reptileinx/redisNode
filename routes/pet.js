@@ -6,6 +6,10 @@ var async = require('async');
 //var redis = require('redis');
 //var client = redis.createClient(6379, '127.0.0.1');
 
+/*
+    right now all the gets are in sequence so which ever gets back first
+    will call 'res.json(body)' and close the req-res pipe
+*/
 module.exports = function(app) {
 
     /* read */
