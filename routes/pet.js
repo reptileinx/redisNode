@@ -12,37 +12,59 @@ var async = require('async');
 */
 module.exports = function(app) {
 
-    /* read */
+    /* Read */
     app.get('/pets', function(req, res) {
-        r({
-            uri: 'http://localhost:3001/dog'
-        }, function(error, response, body) {
-            if (!error && response.statusCode === 200) {
-                res.json(body);
-            } else {
-                res.send(response.statusCode);
 
-            }
-
-        });
+        async.parallel({
+                cat: function(callback) {
+                    r({
+                        uri: 'http://localhost:3002/cat'
+                    }, function(error, response, body) {
+                        if (error) {
+                            callback({
+                                service: 'cat',
+                                error: error
+                            });
+                            return;
+                        }
+                        if (!error && response.statusCode === 200) {
+                            callback(null, body.data);
+                        } else {
+                            callback(response.statusCode);
+                        }
+                    });
+                },
+                dog: function(callback) {
+                    r({
+                        uri: 'http://localhost:3001/dog'
+                    }, function(error, response, body) {
+                        if (error) {
+                            callback({
+                                service: 'dog',
+                                error: error
+                            });
+                            return;
+                        }
+                        if (!error && response.statusCode === 200) {
+                            callback(null, body.data);
+                        } else {
+                            callback(response.statusCode);
+                        }
+                    });
+                }
+            },
+            function(error, results) {
+                res.json({
+                    error: error,
+                    results: results
+                });
+            });
 
     });
 
-     /* read */
-    app.get('/pets', function(req, res) {
-        r({
-            uri: 'http://localhost:3002/cat'
-        }, function(error, response, body) {
-            if (!error && response.statusCode === 200) {
-                res.json(body);
-            } else {
-                res.send(response.statusCode);
-
-            }
-
+    app.get('/ping', function(req, res) {
+        res.json({
+            pong: Date.now()
         });
-
     });
-
-
 };
