@@ -4,8 +4,8 @@ var r = require('request').defaults({
 
 var async = require('async');
 var moment = require('moment');
-//var redis = require('redis');
-//var client = redis.createClient(6379, '127.0.0.1');
+var redis = require('redis');
+var client = redis.createClient(6379, '127.0.0.1');
 
 /*
     right now all the gets are in sequence so which ever gets back first
@@ -36,22 +36,42 @@ module.exports = function(app) {
                     });
                 },
                 dog: function(callback) {
-                    r({
-                        uri: 'http://localhost:3001/dog'
-                    }, function(error, response, body) {
+
+                    client.get('http://localhost:3001/dog', function(error, dog) {
                         if (error) {
-                            callback({
-                                service: 'dog',
-                                error: error
-                            });
-                            return;
+                            throw error;
                         }
-                        if (!error && response.statusCode === 200) {
-                            callback(null, body.data);
+                        if (dog) {
+                            /*return this if already catched*/
+                            callback(null, JSON.parse(dog));    
                         } else {
-                            callback(response.statusCode);
+
+                            r({
+                                uri: 'http://localhost:3001/dog'
+                            }, function(error, response, body) {
+                                if (error) {
+                                    callback({
+                                        service: 'dog',
+                                        error: error
+                                    });
+                                    return;
+                                }
+                                if (!error && response.statusCode === 200) {
+                                    callback(null, body.data);
+                                    client.set('http://localhost:3001/dog', JSON.stringify(body.data), function (error) {
+                                    //client.setex('http://localhost:3001/dog', 10, JSON.stringify(body.data), function(error) {
+                                        if (error) {
+                                            throw error;
+                                        }
+                                    });
+                                } else {
+                                    callback(response.statusCode);
+                                }
+                            });
+
                         }
                     });
+
                 }
             },
             function(error, results) {
